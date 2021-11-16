@@ -5,9 +5,11 @@ from Crypto.Cipher import AES
 from Crypto.Random import new as Random
 from hashlib import sha256
 from base64 import b64encode, b64decode
+from UI.main_UI import Ui_MainForm
+from UI.password_checker_UI import Ui_password_checker
 
 
-class Ui_MainForm(QtWidgets.QWidget):
+class MainForm(QtWidgets.QWidget, Ui_MainForm):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -21,7 +23,7 @@ class Ui_MainForm(QtWidgets.QWidget):
 
     def new_password(self):
         # ф-ия создания новой строки таблицы
-        self.con = sqlite3.connect('PasswordManager/db.sqlite3')
+        self.con = sqlite3.connect('db/db.sqlite3')
         cur = self.con.cursor()
         l = len(cur.execute("SELECT * FROM passwords").fetchall())
         self.table.insertRow(self.table.rowCount())
@@ -36,7 +38,7 @@ class Ui_MainForm(QtWidgets.QWidget):
 
     def delete_row(self):
         # ф-ия удаления выделенных строк таблицы
-        self.con = sqlite3.connect('PasswordManager/db.sqlite3')
+        self.con = sqlite3.connect('db/db.sqlite3')
         rows = list(set([i.row() for i in self.table.selectedItems()]))
         ids = [str(i + 1) for i in rows]
         valid = QtWidgets.QMessageBox.question(
@@ -61,7 +63,7 @@ class Ui_MainForm(QtWidgets.QWidget):
 
     def update(self):
         # ф-ия для обновления данных таблицы в соответствии с бд
-        self.con = sqlite3.connect('PasswordManager/db.sqlite3')
+        self.con = sqlite3.connect('db/db.sqlite3')
         cur = self.con.cursor()
         res = cur.execute("SELECT * FROM passwords").fetchall()
         self.table.setRowCount(len(res))
@@ -102,7 +104,7 @@ class Ui_MainForm(QtWidgets.QWidget):
     def base_updater(self, item):
         # ф-ия для обновления данных в бд в соответствии с изменёнными данными
         # таблицы
-        self.con = sqlite3.connect('PasswordManager/db.sqlite3')
+        self.con = sqlite3.connect('db/db.sqlite3')
         row = item.row()
         col = item.column()
         txt = item.text()
@@ -130,80 +132,15 @@ class Ui_MainForm(QtWidgets.QWidget):
                     QtGui.QColor(255, 255, 153))
                 self.table.item(row, 2).setToolTip('Ненадёжный пароль')
 
-    def setupUi(self, MainForm):
-        MainForm.setObjectName("MainForm")
-        MainForm.resize(994, 518)
-        MainForm.setMinimumSize(QtCore.QSize(994, 300))
-        self.mainLayout = QtWidgets.QVBoxLayout(MainForm)
-        self.mainLayout.setContentsMargins(0, -1, 0, -1)
-        self.mainLayout.setSpacing(7)
-        self.mainLayout.setObjectName("mainLayout")
-        self.layout = QtWidgets.QGridLayout()
-        self.layout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.layout.setContentsMargins(20, 0, 20, 0)
-        self.layout.setHorizontalSpacing(20)
-        self.layout.setVerticalSpacing(7)
-        self.layout.setObjectName("layout")
-        self.del_btn = QtWidgets.QPushButton(MainForm)
-        self.del_btn.setObjectName("del_btn")
-        self.layout.addWidget(self.del_btn, 1, 1, 1, 1)
-        self.save_btn = QtWidgets.QPushButton(MainForm)
-        self.save_btn.setObjectName("save_btn")
-        self.layout.addWidget(self.save_btn, 1, 2, 1, 1)
-        self.new_btn = QtWidgets.QPushButton(MainForm)
-        self.new_btn.setObjectName("new_btn")
-        self.layout.addWidget(self.new_btn, 1, 0, 1, 1)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                           QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        self.table = QtWidgets.QTableWidget(MainForm)
-        self.table.setMinimumSize(QtCore.QSize(950, 200))
-        self.table.setHorizontalScrollBarPolicy(
-            QtCore.Qt.ScrollBarAlwaysOff)
-        self.table.setObjectName("tableWidget")
-        self.table.setColumnCount(3)
-        self.table.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(2, item)
-        self.table.horizontalHeader().setCascadingSectionResizes(False)
-        self.table.horizontalHeader().setDefaultSectionSize(310)
-        self.table.horizontalHeader().setSortIndicatorShown(False)
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.verticalHeader().setSortIndicatorShown(False)
-        self.table.verticalHeader().setStretchLastSection(False)
-        self.layout.addWidget(self.table, 0, 0, 1, 3)
-        self.mainLayout.addLayout(self.layout)
 
-        self.retranslateUi(MainForm)
-        QtCore.QMetaObject.connectSlotsByName(MainForm)
-
-    def retranslateUi(self, MainForm):
-        _translate = QtCore.QCoreApplication.translate
-        MainForm.setWindowTitle(_translate("MainForm", "Password Manager 2000"))
-        self.del_btn.setText(_translate("MainForm", "Удалить"))
-        self.save_btn.setText(_translate("MainForm", "Сохранить"))
-        self.new_btn.setText(_translate("MainForm", "Создать пароль"))
-        item = self.table.horizontalHeaderItem(0)
-        item.setText(_translate("MainForm", "Название"))
-        item = self.table.horizontalHeaderItem(1)
-        item.setText(_translate("MainForm", "Логин"))
-        item = self.table.horizontalHeaderItem(2)
-        item.setText(_translate("MainForm", "Пароль"))
-
-
-class Ui_password_check(QtWidgets.QWidget):
+class PasswordChecker(QtWidgets.QWidget, Ui_password_checker):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.entered_before = False
         # проверка, что пользователь уже заходил для показа верной информации
         try:
-            _ = open('PasswordManager/db.sqlite3')
+            _ = open('db/db.sqlite3')
         except IOError:
             self.lbl.setText('Придумайте пароль для входа')
             self.lbl1.show()
@@ -223,7 +160,7 @@ class Ui_password_check(QtWidgets.QWidget):
                 if authorize_check(key):
                     MyApp2.show()
                     self.hide()
-                    Ui_MainForm.get_key(Ui_MainForm, key)
+                    MainForm.get_key(MainForm, key)
                     MyApp2.update()
                 else:
                     self.lbl.setText('Неправильный пароль')
@@ -232,7 +169,7 @@ class Ui_password_check(QtWidgets.QWidget):
                     MyApp2.show()
                     self.hide()
                     con = sqlite3.connect(
-                        'PasswordManager/db.sqlite3')
+                        'db/db.sqlite3')
                     cur = con.cursor()
                     # создание таблицы в бд, в которой хранятся все данные,
                     # которые далее и будут показываться в QTable
@@ -254,77 +191,6 @@ class Ui_password_check(QtWidgets.QWidget):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Return:
             self.check_entered_password()
-
-    def setupUi(self, password_check):
-        password_check.setObjectName("password_check")
-        password_check.resize(278, 120)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                           QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            password_check.sizePolicy().hasHeightForWidth())
-        password_check.setSizePolicy(sizePolicy)
-        password_check.setMaximumSize(QtCore.QSize(278, 120))
-        password_check.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.verticalLayout = QtWidgets.QVBoxLayout(password_check)
-        self.verticalLayout.setContentsMargins(-1, 7, -1, 10)
-        self.verticalLayout.setSpacing(7)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.lbl = QtWidgets.QLabel(password_check)
-        self.lbl.setText("")
-        self.lbl.setAlignment(QtCore.Qt.AlignCenter)
-        self.lbl.setObjectName("lbl")
-        self.verticalLayout.addWidget(self.lbl)
-        self.text_edt = QtWidgets.QLineEdit(password_check)
-        self.text_edt1 = QtWidgets.QLineEdit(password_check)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                           QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.text_edt.sizePolicy().hasHeightForWidth())
-        self.text_edt.setSizePolicy(sizePolicy)
-        self.text_edt.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.text_edt.setMinimumSize(QtCore.QSize(250, 30))
-        self.text_edt.setMaximumSize(QtCore.QSize(250, 30))
-        self.text_edt.setObjectName("text_edt")
-        self.lbl1 = QtWidgets.QLabel(password_check)
-        self.lbl1.setText("Повторите пароль")
-        self.lbl1.setAlignment(QtCore.Qt.AlignCenter)
-        self.lbl1.setObjectName("lbl")
-        self.text_edt1.setSizePolicy(sizePolicy)
-        self.text_edt1.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.text_edt1.setMinimumSize(QtCore.QSize(250, 30))
-        self.text_edt1.setMaximumSize(QtCore.QSize(250, 30))
-        self.text_edt1.setObjectName("text_edt")
-        self.verticalLayout.addWidget(self.text_edt)
-        self.verticalLayout.addWidget(self.lbl1)
-        self.verticalLayout.addWidget(self.text_edt1)
-        self.check_btn = QtWidgets.QPushButton(password_check)
-        self.check_btn.setObjectName("check_btn")
-        self.verticalLayout.addWidget(self.check_btn)
-        self.text_edt1.hide()
-        self.lbl1.hide()
-
-        self.retranslateUi(password_check)
-        QtCore.QMetaObject.connectSlotsByName(password_check)
-
-    def retranslateUi(self, password_check):
-        _translate = QtCore.QCoreApplication.translate
-        password_check.setWindowTitle(
-            _translate("password_check", "Enter"))
-        self.check_btn.setText(_translate("password_check", "Далее"))
-
-
-def authorize_check(key):
-    # ф-ия проверки правильности введённого пароля, посредством расшифровки
-    # сообщения "password" с помощью данного ключа
-    cur = sqlite3.connect('PasswordManager/db.sqlite3').cursor()
-    encrypted = cur.execute("SELECT * FROM enterpassword").fetchall()
-    if AES_Tool(encrypted[0][0], key).decrypt() == 'password':
-        return True
-    return False
 
 
 class AES_Tool:
@@ -353,6 +219,16 @@ class AES_Tool:
         cipher = AES.new(self.key, AES.MODE_OFB, iv)
         return self.unpad(
             cipher.decrypt(cipher_text[self.block_size:])).decode()
+
+
+def authorize_check(key):
+    # ф-ия проверки правильности введённого пароля, посредством расшифровки
+    # сообщения "password" с помощью данного ключа
+    cur = sqlite3.connect('db/db.sqlite3').cursor()
+    encrypted = cur.execute("SELECT * FROM enterpassword").fetchall()
+    if AES_Tool(encrypted[0][0], key).decrypt() == 'password':
+        return True
+    return False
 
 
 def generate_user_password():
@@ -411,7 +287,7 @@ def check_user_password(pswrd):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    Myapp = Ui_password_check()
-    MyApp2 = Ui_MainForm()
+    Myapp = PasswordChecker()
+    MyApp2 = MainForm()
     Myapp.show()
     sys.exit(app.exec_())
